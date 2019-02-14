@@ -17,24 +17,46 @@ import (
 
 const eventTransfer  = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
 
+const fromBlock = int64(4941081)
+const iter = int64(1000)
+
+
 func RunListener(app *application.Application) {
 
-	var filter ethereum.FilterQuery
+	currentBlock := fromBlock
+	lastBlock := app.Client.LastBlock
+	for {
+		fb := currentBlock
 
-	filter.Addresses = []common.Address{app.Client.TokenAddress}
-	filter.Topics = [][]common.Hash{{common.HexToHash(eventTransfer)}}
-	filter.ToBlock = big.NewInt(app.Client.LastBlock)
-	logs, filterErr := app.Client.EthClient.FilterLogs(context.Background(), filter)
+		currentBlock += iter
+		if currentBlock > lastBlock {
+			currentBlock = lastBlock
+		}
 
-	if filterErr != nil {
-		log.Error().Err(filterErr).Msgf("failed to get filter logs for contract ")
-		return
-	}
+		filter := ethereum.FilterQuery{
+			Addresses: []common.Address{app.Client.TokenAddress},
+			Topics: [][]common.Hash{{common.HexToHash(eventTransfer)}},
+			FromBlock: big.NewInt(fb),
+			ToBlock: big.NewInt(currentBlock),
+		}
 
-	for _, res := range logs {
-		err := checkTransferLog(app.Repo, res)
+		logs, err:= app.Client.EthClient.FilterLogs(context.Background(), filter)
 		if err != nil {
-			log.Error().Err(err).Msgf("%v", res)
+			log.Error().Err(err).Msgf("failed to get filter logs for contract")
+			return
+		}
+
+		for _, res := range logs {
+			err := checkTransferLog(app.Repo, res)
+			if err != nil {
+				log.Error().Err(err).Msgf("%v", res)
+			}
+		}
+
+		log.Debug().Msgf("listened to %d block", currentBlock)
+
+		if currentBlock == lastBlock {
+			break
 		}
 	}
 
@@ -52,10 +74,14 @@ func checkTransferLog(repo *repo.Repo, ethLog types.Log) error {
 		return errors.New("cannot parse uint from value")
 	}
 
+	log.Debug().Msgf("New Transfer event detected. From: %s, To: %s, value: %v", fromStr, toStr, value)
+
+
+	zero := decimal.New(0, 0)
 	var from models.Holder
 	from, err := repo.Holder.GetHolderByAddress(fromStr)
 	if err != nil {
-		from, err = repo.Holder.NewHolder(fromStr, decimal.New(0, 0))
+		from, err = repo.Holder.NewHolder(fromStr, zero)
 		if err != nil {
 			return err
 		}
@@ -64,11 +90,14 @@ func checkTransferLog(repo *repo.Repo, ethLog types.Log) error {
 	var to models.Holder
 	to, err = repo.Holder.GetHolderByAddress(toStr)
 	if err != nil {
-		to, err = repo.Holder.NewHolder(toStr, decimal.New(0, 0))
+		to, err = repo.Holder.NewHolder(toStr,zero)
+		if err != nil {
+			return err
+		}
 	}
 
 	from.Balance = from.Balance.Sub(decimal.NewFromBigInt(value, 0))
-	to.Balance = from.Balance.Add(decimal.NewFromBigInt(value, 0))
+	to.Balance = to.Balance.Add(decimal.NewFromBigInt(value, 0))
 
 	err = repo.Holder.UpdateHolder(&from)
 	if err != nil {

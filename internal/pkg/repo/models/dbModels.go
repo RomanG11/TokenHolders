@@ -5,6 +5,7 @@ import (
 )
 
 type Holder struct {
-	EthAddress          string               `gorm:"primary_key"`
+	ID        			uint 			     `gorm:"primary_key"`
+	EthAddress          string
 	Balance			    decimal.Decimal      `gorm:"type:decimal"`
 }

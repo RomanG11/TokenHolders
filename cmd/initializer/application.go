@@ -8,8 +8,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-
-
 func InitApplication() *application.Application {
 	var app application.Application
 	env := enviroment.GetEnv()

@@ -8,6 +8,6 @@ import (
 
 //Repo contains all table repositories
 type Repo struct {
-	DB                    *gorm.DB
+	DB                      *gorm.DB
 	Holder                  HolderRepository
 }

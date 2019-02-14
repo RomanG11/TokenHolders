@@ -20,7 +20,7 @@ type HolderRepo struct {
 func (repo *HolderRepo) GetHolderByAddress(ethAddress string) (models.Holder, error) {
 	var holder models.Holder
 
-	err := repo.db.Where("ethAddress = ?", ethAddress).Find(&holder).Error
+	err := repo.db.Where("eth_address = ?", ethAddress).Find(&holder).Error
 	if err != nil {
 		return holder, err
 	}
@@ -45,10 +45,14 @@ func (repo *HolderRepo) NewHolder(address string, balance decimal.Decimal) (mode
 		Balance: balance,
 	}
 
-	err := repo.db.Save(holder).Error
+	err := repo.db.Create(&holder).Error
 	if err != nil {
 		return holder, err
 	}
 
 	return holder, nil
+}
+
+func (repo *HolderRepo) FindGroup(st, f int64) ([]models.Holder, error) {
+	repo.db.Where("id  ? and ", )
 }
