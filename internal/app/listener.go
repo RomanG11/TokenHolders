@@ -16,14 +16,12 @@ import (
 )
 
 const eventTransfer  = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-
-const fromBlock = int64(4941081)
 const iter = int64(1000)
 
 
 func RunListener(app *application.Application) {
 
-	currentBlock := fromBlock
+	currentBlock := app.Client.FromBlock
 	lastBlock := app.Client.LastBlock
 	for {
 		fb := currentBlock

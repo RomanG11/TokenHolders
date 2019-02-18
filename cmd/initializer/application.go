@@ -36,7 +36,8 @@ func initDB(env map[string]string) *repo.Repo {
 func initClient(env map[string]string) *etherPkg.Client {
 	rpcPort := env["RPC_PORT"]
 	tokenAddress := env["TOKEN_ADDRESS"]
+	fromBlock := env["FROM_BLOCK"]
 	lastBlock := env["LAST_BLOCK"]
 
-	return etherPkg.InitClient(rpcPort, tokenAddress, lastBlock)
+	return etherPkg.InitClient(rpcPort, tokenAddress, fromBlock, lastBlock)
 }

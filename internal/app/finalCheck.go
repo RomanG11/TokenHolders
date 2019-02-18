@@ -2,27 +2,48 @@ package app
 
 import (
 	"TokenHolders/internal/pkg/application"
-	"TokenHolders/internal/pkg/etherPkg/contracts/tokenContract"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/shopspring/decimal"
-	"math/big"
+	"github.com/rs/zerolog/log"
 )
 
-func finalCheck(app *application.Application, address string) (decimal.Decimal, error) {
-	var d decimal.Decimal
+func check(app *application.Application) error {
+	var s int64 = 1
+	var f int64 = 101
 
-	token, err := tokenContract.NewToken(app.Client.TokenAddress, app.Client.EthClient)
-	if err != nil {
-		return d, err
+	for {
+		holders, err := app.Repo.Holder.FindGroup(s, f)
+		if err != nil {
+			return err
+		}
+
+		for i, holder := range holders {
+			b, err := app.Client.CheckFinalBalance(holder.EthAddress)
+			if err != nil {
+				log.Error().Err(err).Msgf("%v", b)
+			}
+
+			if !holder.Balance.Equal(b) {
+				log.Warn().Msgf("balances is not equals for account: %s. Previous: %s; current: %s. Changing balance",
+					holder.EthAddress, holder.Balance.String(), b.String())
+			}
+
+			holders[i].Balance = b
+
+			err = app.Repo.Holder.UpdateHolder(&holders[i])
+			if err != nil {
+				return err
+			}
+
+			if len(holders) != 100 {
+				break
+			}
+
+			s += 100
+			f += 100
+
+		}
+
+		log.Info().Msg("check completed")
+		return nil
 	}
 
-	co := bind.CallOpts{BlockNumber: big.NewInt(app.Client.LastBlock)}
-
-	b, err := token.BalanceOf(&co, common.HexToAddress(address))
-	if err != nil {
-		return d, err
-	}
-
-	return decimal.NewFromBigInt(b, 0), nil
 }
