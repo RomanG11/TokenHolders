@@ -11,7 +11,7 @@ func GetDbClient(name, user, pass, host, port string) (*Repo, error) {
 		"user=%s password=%s dbname=%s host=%s port=%s sslmode=disable",
 		user, pass, name, host, port))
 
-	db.LogMode(true)
+	db.LogMode(false)
 	if err != nil {
 		return nil, err
 	}

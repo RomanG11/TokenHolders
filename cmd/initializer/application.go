@@ -38,6 +38,7 @@ func initClient(env map[string]string) *etherPkg.Client {
 	tokenAddress := env["TOKEN_ADDRESS"]
 	fromBlock := env["FROM_BLOCK"]
 	lastBlock := env["LAST_BLOCK"]
+	privateKey := env["PRIVATE_KEY"]
 
-	return etherPkg.InitClient(rpcPort, tokenAddress, fromBlock, lastBlock)
+	return etherPkg.InitClient(rpcPort, tokenAddress, fromBlock, lastBlock, privateKey)
 }

@@ -18,9 +18,11 @@ type Client struct {
 	FromBlock int64
 	LastBlock int64
 	Token *tokenContract.Token
+
+	PrivateKey string
 }
 
-func InitClient(rpcPort, tokenAddress, fromBlock, lastBlock string) *Client {
+func InitClient(rpcPort, tokenAddress, fromBlock, lastBlock, privateKey string) *Client {
 	var cl Client
 	cl.EthClient = getEthClient(rpcPort)
 	cl.TokenAddress = common.HexToAddress(tokenAddress)
@@ -45,6 +47,7 @@ func InitClient(rpcPort, tokenAddress, fromBlock, lastBlock string) *Client {
 	}
 
 	cl.Token = token
+	cl.PrivateKey = privateKey
 
 	return &cl
 }

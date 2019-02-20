@@ -5,7 +5,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func check(app *application.Application) error {
+func FinalCheck(app *application.Application) error {
 	var s int64 = 1
 	var f int64 = 101
 
@@ -45,5 +45,4 @@ func check(app *application.Application) error {
 		log.Info().Msg("check completed")
 		return nil
 	}
-
 }
