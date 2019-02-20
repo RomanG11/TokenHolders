@@ -13,4 +13,6 @@ func main() {
 	if err != nil {
 		log.Panic().Err(err).Msg("something went wrong")
 	}
+
+	log.Info().Msg("Airdrop completed")
 }

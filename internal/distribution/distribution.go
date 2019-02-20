@@ -49,14 +49,14 @@ func Airdrop(app *application.Application) error {
 		addresses = []common.Address{}
 		values = []*big.Int{}
 
+		log.Info().Msgf("transfer from %d to %d completed", s, f)
+
 		s += 50
 		f += 50
 
 		if len(holders) != 50 {
 			break
 		}
-
-		log.Info().Msg("transfer completed")
 	}
 
 	return nil
