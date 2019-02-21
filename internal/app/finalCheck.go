@@ -6,11 +6,11 @@ import (
 )
 
 func FinalCheck(app *application.Application) error {
-	var s int64 = 1
-	var f int64 = 101
+	//var s int64 = 1
+	//var f int64 = 101
 
 	for {
-		holders, err := app.Repo.Holder.FindGroup(s, f)
+		holders, err := app.Repo.Holder.FindAll()
 		if err != nil {
 			return err
 		}
@@ -24,22 +24,18 @@ func FinalCheck(app *application.Application) error {
 			if !holder.Balance.Equal(b) {
 				log.Warn().Msgf("balances is not equals for account: %s. Previous: %s; current: %s. Changing balance",
 					holder.EthAddress, holder.Balance.String(), b.String())
+
+				holders[i].Balance = b
+
+				err = app.Repo.Holder.UpdateHolder(&holders[i])
+				if err != nil {
+					return err
+				}
 			}
 
-			holders[i].Balance = b
-
-			err = app.Repo.Holder.UpdateHolder(&holders[i])
-			if err != nil {
-				return err
+			if i%100 == 0 {
+				log.Debug().Msgf("checked %d holders", i)
 			}
-
-			if len(holders) != 100 {
-				break
-			}
-
-			s += 100
-			f += 100
-
 		}
 
 		log.Info().Msg("check completed")

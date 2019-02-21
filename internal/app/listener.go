@@ -1,12 +1,13 @@
 package app
 
 import (
-	"context"
-	"encoding/hex"
-	"errors"
+	"TokenHolders/cmd/initializer"
 	"TokenHolders/internal/pkg/application"
 	"TokenHolders/internal/pkg/repo"
 	"TokenHolders/internal/pkg/repo/models"
+	"context"
+	"encoding/hex"
+	"errors"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -15,9 +16,8 @@ import (
 	"math/big"
 )
 
-const eventTransfer  = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+const eventTransfer = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
 const iter = int64(1000)
-
 
 func RunListener(app *application.Application) {
 
@@ -33,14 +33,18 @@ func RunListener(app *application.Application) {
 
 		filter := ethereum.FilterQuery{
 			Addresses: []common.Address{app.Client.TokenAddress},
-			Topics: [][]common.Hash{{common.HexToHash(eventTransfer)}},
+			Topics:    [][]common.Hash{{common.HexToHash(eventTransfer)}},
 			FromBlock: big.NewInt(fb),
-			ToBlock: big.NewInt(currentBlock),
+			ToBlock:   big.NewInt(currentBlock),
 		}
 
-		logs, err:= app.Client.EthClient.FilterLogs(context.Background(), filter)
+	loop:
+		logs, err := app.Client.EthClient.FilterLogs(context.Background(), filter)
 		if err != nil {
+			a := initializer.InitApplication()
+			app.Client = a.Client
 			log.Error().Err(err).Msgf("failed to get filter logs for contract")
+			goto loop
 			return
 		}
 
@@ -74,7 +78,6 @@ func checkTransferLog(repo *repo.Repo, ethLog types.Log) error {
 
 	log.Debug().Msgf("New Transfer event detected. From: %s, To: %s, value: %v", fromStr, toStr, value)
 
-
 	zero := decimal.New(0, 0)
 	var from models.Holder
 	from, err := repo.Holder.GetHolderByAddress(fromStr)
@@ -88,7 +91,7 @@ func checkTransferLog(repo *repo.Repo, ethLog types.Log) error {
 	var to models.Holder
 	to, err = repo.Holder.GetHolderByAddress(toStr)
 	if err != nil {
-		to, err = repo.Holder.NewHolder(toStr,zero)
+		to, err = repo.Holder.NewHolder(toStr, zero)
 		if err != nil {
 			return err
 		}

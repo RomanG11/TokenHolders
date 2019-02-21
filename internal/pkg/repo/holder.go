@@ -12,6 +12,8 @@ type HolderRepository interface {
 	UpdateHolder(holder *models.Holder) error
 	NewHolder(address string, balance decimal.Decimal) (models.Holder, error)
 	FindGroup(st, f int64) ([]models.Holder, error)
+	FindAll() ([]models.Holder, error)
+	FindAllWithPositiveBalance() ([]models.Holder, error)
 }
 
 type HolderRepo struct {
@@ -43,7 +45,7 @@ func (repo *HolderRepo) NewHolder(address string, balance decimal.Decimal) (mode
 
 	holder := models.Holder{
 		EthAddress: address,
-		Balance: balance,
+		Balance:    balance,
 	}
 
 	err := repo.db.Create(&holder).Error
@@ -59,6 +61,30 @@ func (repo *HolderRepo) FindGroup(st, f int64) ([]models.Holder, error) {
 	var h []models.Holder
 
 	err := repo.db.Where("id > ? and id < ? ", st, f).Find(&h).Error
+	if err != nil {
+		return h, err
+	}
+
+	return h, nil
+}
+
+func (repo *HolderRepo) FindAll() ([]models.Holder, error) {
+
+	var h []models.Holder
+
+	err := repo.db.Find(&h).Error
+	if err != nil {
+		return h, err
+	}
+
+	return h, nil
+}
+
+func (repo *HolderRepo) FindAllWithPositiveBalance() ([]models.Holder, error) {
+
+	var h []models.Holder
+
+	err := repo.db.Where("balance > 0").Find(&h).Error
 	if err != nil {
 		return h, err
 	}

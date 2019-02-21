@@ -6,12 +6,12 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func main ()  {
+func main() {
 
 	appl := initializer.InitApplication()
 
-	app.RunListener(appl)
-	log.Info().Msg("Listener action completed")
+	//app.RunListener(appl)
+	//log.Info().Msg("Listener action completed")
 
 	err := app.FinalCheck(appl)
 	if err != nil {

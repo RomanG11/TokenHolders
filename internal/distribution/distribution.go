@@ -12,50 +12,49 @@ import (
 )
 
 func Airdrop(app *application.Application) error {
-	var s int64 = 1
-	var f int64 = 51
 
-	for {
-		holders, err := app.Repo.Holder.FindGroup(s, f)
-		if err != nil {
-			return err
+	holders, err := app.Repo.Holder.FindAllWithPositiveBalance()
+	if err != nil {
+		return err
+	}
+
+	var addresses []common.Address
+	var values []*big.Int
+
+	key, err := crypto.HexToECDSA(app.Client.PrivateKey)
+	if err != nil {
+		log.Error().Err(err).Msg("invalid ethereum private key")
+		return err
+	}
+
+	auth := bind.NewKeyedTransactor(key)
+
+	j := 0
+
+	for i, holder := range holders {
+
+		if j == 0 {
+			j = i
 		}
 
-		var addresses []common.Address
-		var values []*big.Int
+		addresses = append(addresses, common.HexToAddress(holder.EthAddress))
 
-		for _, holder := range holders {
-
-			addresses = append(addresses, common.HexToAddress(holder.EthAddress))
-
-			a := big.Int{}
-			val, ok := a.SetString(holder.Balance.String(), 10)
-			if !ok {
-				return fmt.Errorf("invalid balance, %s", holder.Balance.String())
-			}
-			values = append(values, val)
+		a := big.Int{}
+		val, ok := a.SetString(holder.Balance.String(), 10)
+		if !ok {
+			return fmt.Errorf("invalid balance, %s", holder.Balance.String())
 		}
+		values = append(values, val)
 
-		key, err := crypto.HexToECDSA(app.Client.PrivateKey)
-		if err != nil {
-			log.Error().Err(err).Msg("invalid ethereum private key")
-			return err
-		}
+		if len(addresses) == 50 {
+			sendTx(app.Client, auth, addresses, values)
 
-		auth := bind.NewKeyedTransactor(key)
+			addresses = []common.Address{}
+			values = []*big.Int{}
 
-		sendTx(app.Client, auth, addresses, values)
+			log.Info().Msgf("transfer from %d to %d completed", j, i)
 
-		addresses = []common.Address{}
-		values = []*big.Int{}
-
-		log.Info().Msgf("transfer from %d to %d completed", s, f)
-
-		s += 50
-		f += 50
-
-		if len(holders) != 50 {
-			break
+			j = 0
 		}
 	}
 
