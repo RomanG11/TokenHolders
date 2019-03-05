@@ -19,5 +19,6 @@ func GetDbClient(name, user, pass, host, port string) (*Repo, error) {
 	return &Repo{
 		db,
 		&HolderRepo{db},
+		&HolderNewRepo{db},
 	}, nil
 }

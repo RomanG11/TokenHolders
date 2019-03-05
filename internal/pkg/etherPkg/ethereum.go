@@ -13,11 +13,11 @@ import (
 )
 
 type Client struct {
-	EthClient *ethclient.Client
+	EthClient    *ethclient.Client
 	TokenAddress common.Address
-	FromBlock int64
-	LastBlock int64
-	Token *tokenContract.Token
+	FromBlock    int64
+	LastBlock    int64
+	Token        *tokenContract.Token
 
 	PrivateKey string
 }
@@ -69,6 +69,7 @@ func (c *Client) CheckFinalBalance(address string) (decimal.Decimal, error) {
 	var d decimal.Decimal
 
 	co := bind.CallOpts{BlockNumber: big.NewInt(c.LastBlock)}
+	//co := bind.CallOpts{}
 
 	b, err := c.Token.BalanceOf(&co, common.HexToAddress(address))
 	if err != nil {

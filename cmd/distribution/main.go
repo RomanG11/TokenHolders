@@ -2,17 +2,19 @@ package main
 
 import (
 	"TokenHolders/cmd/initializer"
-	"TokenHolders/internal/distribution"
+	"TokenHolders/internal/app"
 	"github.com/rs/zerolog/log"
 )
 
 func main() {
-	app := initializer.InitApplication()
+	appl := initializer.InitApplication()
 
-	err := distribution.Airdrop(app)
-	if err != nil {
-		log.Panic().Err(err).Msg("something went wrong")
-	}
+	app.RunDCListener(appl)
+
+	//err := distribution.Airdrop(appl)
+	//if err != nil {
+	//	log.Panic().Err(err).Msg("something went wrong")
+	//}
 
 	log.Info().Msg("Airdrop completed")
 }

@@ -14,6 +14,7 @@ type HolderRepository interface {
 	FindGroup(st, f int64) ([]models.Holder, error)
 	FindAll() ([]models.Holder, error)
 	FindAllWithPositiveBalance() ([]models.Holder, error)
+	FindHolder(addr string) (models.Holder, error)
 }
 
 type HolderRepo struct {
@@ -84,7 +85,20 @@ func (repo *HolderRepo) FindAllWithPositiveBalance() ([]models.Holder, error) {
 
 	var h []models.Holder
 
-	err := repo.db.Where("balance > 0").Find(&h).Error
+	err := repo.db.Where("balance>0 and ok is null").Find(&h).Error
+
+	if err != nil {
+		return h, err
+	}
+
+	return h, nil
+}
+
+func (repo *HolderRepo) FindHolder(addr string) (models.Holder, error) {
+
+	var h models.Holder
+
+	err := repo.db.Where("eth_address = ?", addr).Find(&h).Error
 	if err != nil {
 		return h, err
 	}

@@ -23,17 +23,17 @@ func RunListener(app *application.Application) {
 
 	currentBlock := app.Client.FromBlock
 	lastBlock := app.Client.LastBlock
+
 	for {
 		fb := currentBlock
-
 		currentBlock += iter
+
 		if currentBlock > lastBlock {
 			currentBlock = lastBlock
 		}
 
 		filter := ethereum.FilterQuery{
 			Addresses: []common.Address{app.Client.TokenAddress},
-			Topics:    [][]common.Hash{{common.HexToHash(eventTransfer)}},
 			FromBlock: big.NewInt(fb),
 			ToBlock:   big.NewInt(currentBlock),
 		}
@@ -49,9 +49,11 @@ func RunListener(app *application.Application) {
 		}
 
 		for _, res := range logs {
-			err := checkTransferLog(app.Repo, res)
-			if err != nil {
-				log.Error().Err(err).Msgf("%v", res)
+			if res.Topics[0] == common.HexToHash(eventTransfer) {
+				err := checkTransferLog(app.Repo, res)
+				if err != nil {
+					log.Error().Err(err).Msgf("%v", res)
+				}
 			}
 		}
 
@@ -76,7 +78,7 @@ func checkTransferLog(repo *repo.Repo, ethLog types.Log) error {
 		return errors.New("cannot parse uint from value")
 	}
 
-	log.Debug().Msgf("New Transfer event detected. From: %s, To: %s, value: %v", fromStr, toStr, value)
+	//log.Debug().Msgf("New Transfer event detected. From: %s, To: %s, value: %v", fromStr, toStr, value)
 
 	zero := decimal.New(0, 0)
 	var from models.Holder
